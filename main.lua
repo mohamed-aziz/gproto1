@@ -19,6 +19,7 @@ local objects = {}
 local square = class('square')
 
 function square:initialize(x, y, world)
+   self.has_jumped_once = false
    self.body = love.physics.newBody(world, x, y, "dynamic")
    self.shape = love.physics.newRectangleShape(25, 25)
    self.fixture = love.physics.newFixture(self.body, self.shape, 1)
@@ -31,7 +32,7 @@ function square:update(dt)
 end
 
 function square:draw()
-   love.graphics.setColor(140, 23, 11, 255)
+   love.graphics.setColor(23, 23, 143, 255)
    love.graphics.polygon("fill", self.body:getWorldPoints(self.shape:getPoints()))
    love.graphics.setColor(255, 255, 255, 255)
 end
@@ -87,6 +88,7 @@ function obstacle:initialize(dir, w, h)
       self.body:setGravityScale(-1)
       table.insert(obstR, self)
    end
+   self.body:setBullet(true)
    self.fixture = love.physics.newFixture(self.body, self.shape, 1)
 end
 
@@ -95,11 +97,11 @@ function obstacle:draw()
 end
 
 function obstacle:update(dt)
-   self.body:setY(dt * 100 + self.body:getY())
+   self.body:setY(dt * 500 + self.body:getY())
 end
 
 
---MENU SYStem
+--MENU SYSTEM
 
 local Menu = class('Menu')
 
@@ -115,6 +117,9 @@ function love.load()
    world = love.physics.newWorld(9.81 * 64, - 0.1 * 64, true)
    square1 = square:new(s['width'] / 2 - 35, sh, world)
    square2 = square:new(s['width'] / 2 , sh, world)
+
+   square1.body:setBullet(true)
+   square2.body:setBullet(true)
 
    zground = ground:new(s['width'] / 2 - 10, s['height'] / 2, world)
 
@@ -149,12 +154,12 @@ function love.update(dt)
    world:update(dt)
 
    if love.keyboard.isDown("left") then
-      square1.body:applyForce(-400, -30)
+      square1.body:applyLinearImpulse(-4, -1)
       square1.body:setAngularVelocity(math.pi * 2 * dt * 100)
    end
    if love.keyboard.isDown("right") then
 
-      square2.body:applyForce(400, -30)
+      square2.body:applyLinearImpulse(4, -1)
       square2.body:setAngularVelocity(math.pi * 2 * dt * 100)
    end
 
@@ -181,4 +186,8 @@ function love.update(dt)
    square1:update(dt)
    square2:update(dt)
    zground:update(dt)
+
+   if square1.body:getY() > s['height']  or square2.body:getY() > s['height']  then
+      love.load()
+   end
 end
